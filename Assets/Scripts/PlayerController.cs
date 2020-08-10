@@ -39,6 +39,8 @@ public class PlayerController : MonoBehaviour
     public Texture squint;
     public Texture normal;
 
+    private bool isPaused = PauseMenuScript.isPaused;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -56,7 +58,7 @@ public class PlayerController : MonoBehaviour
         CheckGrounded();
         SetVelocity();
       
-        if(((Gamepad.current != null && Gamepad.current.buttonSouth.isPressed) || Keyboard.current.spaceKey.isPressed) && isGrounded)
+        if(!isPaused && ((Gamepad.current != null && Gamepad.current.buttonSouth.isPressed) || Keyboard.current.spaceKey.isPressed) && isGrounded)
         {
             velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
             beauFace.SetTexture("_MainTex", squint);
