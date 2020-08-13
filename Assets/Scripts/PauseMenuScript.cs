@@ -53,7 +53,7 @@ public class PauseMenuScript : MonoBehaviour
         {
             if (settingsPanel.activeSelf)
             {
-                Pause();
+                BackFromSettings();
             }
             else
             {
@@ -101,5 +101,10 @@ public class PauseMenuScript : MonoBehaviour
     {
         UpdateHorizontalSensitivity();
         UpdateVerticalSensitivity();
+    }
+
+    public void BackFromSettings()
+    {
+        Pause();
     }
 }

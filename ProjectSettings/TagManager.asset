@@ -6,6 +6,7 @@ TagManager:
   tags:
   - 3rdPersonCamera
   - BeauFace
+  - StandardCollectible
   layers:
   - Default
   - TransparentFX
@@ -17,7 +18,7 @@ TagManager:
   - 
   - Ground
   - PostProcess
-  - 
+  - 3DUI
   - 
   - 
   - 

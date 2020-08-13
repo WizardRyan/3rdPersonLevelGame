@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.SocialPlatforms.Impl;
 
 public class PlayerController : MonoBehaviour
 {
@@ -39,7 +40,7 @@ public class PlayerController : MonoBehaviour
     public Texture squint;
     public Texture normal;
 
-    private bool isPaused = PauseMenuScript.isPaused;
+    public static int standardScore = 0;
 
     // Start is called before the first frame update
     void Start()
@@ -58,13 +59,15 @@ public class PlayerController : MonoBehaviour
         CheckGrounded();
         SetVelocity();
       
-        if(!isPaused && ((Gamepad.current != null && Gamepad.current.buttonSouth.isPressed) || Keyboard.current.spaceKey.isPressed) && isGrounded)
+        if(!PauseMenuScript.isPaused && ((Gamepad.current != null && Gamepad.current.buttonSouth.isPressed) || Keyboard.current.spaceKey.isPressed) && isGrounded)
         {
             velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
+            //controller.slopeLimit = 90;
             beauFace.SetTexture("_MainTex", squint);
         }
         else if (!((Gamepad.current != null && Gamepad.current.buttonSouth.isPressed) || Keyboard.current.spaceKey.isPressed))
         {
+            //controller.slopeLimit = 50;
             beauFace.SetTexture("_MainTex", normal);
         }
         MovePlayer();
@@ -116,5 +119,14 @@ public class PlayerController : MonoBehaviour
     {
         velocity.y += gravity * Time.deltaTime;
         controller.Move(velocity * Time.deltaTime);
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if(other.gameObject.tag == "StandardCollectible")
+        {
+            standardScore++;
+            other.gameObject.SetActive(false);
+        }
     }
 }
