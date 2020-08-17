@@ -1,7 +1,9 @@
 ﻿using Cinemachine;
+using DG.Tweening;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using TreeEditor;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.SocialPlatforms.Impl;
@@ -42,6 +44,13 @@ public class PlayerController : MonoBehaviour
 
     public static int standardScore = 0;
 
+
+    public bool isFollowingObject = false;
+    private bool isJumping = false;
+
+    private GameObject followObject = null;
+    private GameObject tempFollowObject = null;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -58,18 +67,7 @@ public class PlayerController : MonoBehaviour
         MoveCamera();
         CheckGrounded();
         SetVelocity();
-      
-        if(!PauseMenuScript.isPaused && ((Gamepad.current != null && Gamepad.current.buttonSouth.isPressed) || Keyboard.current.spaceKey.isPressed) && isGrounded)
-        {
-            velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
-            //controller.slopeLimit = 90;
-            beauFace.SetTexture("_MainTex", squint);
-        }
-        else if (!((Gamepad.current != null && Gamepad.current.buttonSouth.isPressed) || Keyboard.current.spaceKey.isPressed))
-        {
-            //controller.slopeLimit = 50;
-            beauFace.SetTexture("_MainTex", normal);
-        }
+        Jump();
         MovePlayer();
         FallPlayer();
     }
@@ -81,8 +79,30 @@ public class PlayerController : MonoBehaviour
 
     private void OnMove(InputValue val) => moveInput = val.Get<Vector2>();
 
+    private void Jump()
+    {
+        if (!PauseMenuScript.isPaused && ((Gamepad.current != null && Gamepad.current.buttonSouth.isPressed) || Keyboard.current.spaceKey.isPressed) && isGrounded)
+        {
+            velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
+            //controller.slopeLimit = 90;
+            beauFace.SetTexture("_MainTex", squint);
+            isJumping = true;
+        }
+        else if (!((Gamepad.current != null && Gamepad.current.buttonSouth.isPressed) || Keyboard.current.spaceKey.isPressed))
+        {
+            //controller.slopeLimit = 50;
+            beauFace.SetTexture("_MainTex", normal);
+            isJumping = false;
+        }
+    }
+
     private void MovePlayer()
     {
+        if(isFollowingObject)
+        {
+            FollowObject();
+        }
+
         Vector3 direction = new Vector3(moveInput.x, 0f, moveInput.y).normalized;
 
         if (direction.magnitude >= .1f)
@@ -93,7 +113,6 @@ public class PlayerController : MonoBehaviour
 
             Vector3 moveDir = Quaternion.Euler(0f, targetAngle, 0f) * Vector3.forward;
             controller.Move(moveDir.normalized * speed * Time.deltaTime);
-
         }
     }
 
@@ -105,20 +124,23 @@ public class PlayerController : MonoBehaviour
 
     private void CheckGrounded()
     {
-        isGrounded = Physics.CheckSphere(groundCheck.position, groundDistance, groundMask);
+        isGrounded = Physics.CheckSphere(groundCheck.position, groundDistance, groundMask) || isFollowingObject;
     }
 
     private void SetVelocity()
     {
         if (isGrounded)
         {
-            velocity.y = -2f;
+            velocity.y = 0f;
         }
     }
     private void FallPlayer()
     {
-        velocity.y += gravity * Time.deltaTime;
-        controller.Move(velocity * Time.deltaTime);
+        if (!isFollowingObject || isJumping)
+        {
+            velocity.y += gravity * Time.deltaTime;
+            controller.Move(velocity * Time.deltaTime);
+        }
     }
 
     private void OnTriggerEnter(Collider other)
@@ -128,5 +150,44 @@ public class PlayerController : MonoBehaviour
             standardScore++;
             other.gameObject.SetActive(false);
         }
+
+        else if(other.gameObject.tag == "MovingPlatform")
+        {
+            SetupFollowObject(other.gameObject);
+        }
+       
+    }
+
+    private void OnTriggerExit(Collider other)
+    {
+        if(other.gameObject.tag == "MovingPlatform")
+        {
+            StopFollowingObject();
+        }
+    }
+
+    private void SetupFollowObject(GameObject other)
+    {
+        followObject = other;
+
+        //setting up a temporary object so we only follow position and rotation, but not scale
+        tempFollowObject = new GameObject();
+        tempFollowObject.transform.SetPositionAndRotation(followObject.transform.position, followObject.transform.rotation);
+        tempFollowObject.transform.SetParent(followObject.transform);
+        transform.SetParent(tempFollowObject.transform);
+        isFollowingObject = true;
+    }
+
+    private void StopFollowingObject()
+    {
+        followObject = null;
+        tempFollowObject = null;
+        transform.SetParent(null);
+        isFollowingObject = false;
+    }
+
+    private void FollowObject()
+    {
+        tempFollowObject.transform.SetPositionAndRotation(followObject.transform.position, followObject.transform.rotation);
     }
 }

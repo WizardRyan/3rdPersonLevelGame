@@ -40,7 +40,6 @@ public class PauseMenuScript : MonoBehaviour
         {
             if (isPaused)
             {
-                UpdateControls();
                 Unpause();
             }
             else
@@ -64,6 +63,7 @@ public class PauseMenuScript : MonoBehaviour
 
     public void Unpause()
     {
+        UpdateControls();
         Time.timeScale = 1f;
         pausePanel.SetActive(false);
         settingsPanel.SetActive(false);

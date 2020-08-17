@@ -7,6 +7,7 @@ TagManager:
   - 3rdPersonCamera
   - BeauFace
   - StandardCollectible
+  - MovingPlatform
   layers:
   - Default
   - TransparentFX
